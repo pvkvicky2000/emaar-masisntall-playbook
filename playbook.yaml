@@ -1,0 +1,106 @@
+- hosts: localhost
+  vars:
+    ocp_server: xxxxx
+    ocp_token: xxxxx
+  roles:
+    - ibm.mas_devops.ocp_login
+- hosts: localhost
+  roles:
+    - ibm.mas_devops.ibm_catalogs
+- hosts: localhost
+  any_errors_fatal: true 
+  vars:
+    mongodb_namespace: mongoazure
+    mongodb_admin_username: "{{ lookup('env', 'MONGO_AZURE_USERNAME') }}"
+    mongodb_admin_password: "{{ lookup('env', 'MONGO_AZURE_PASSWORD') }}"
+    mongodb_hosts: "{{ lookup('env', 'MONGO_AZURE_HOSTS') }}"
+    mongodb_retry_writes: true
+    mongodb_ca_pem_local_file: /mascli/mongo-ca.pem
+    mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
+    mas_config_dir: /mascli/masconfig  
+  roles:
+    - ibm.mas_devops.gencfg_mongo
+- hosts: localhost
+  vars:
+    prometheus_storage_class: "{{ lookup('env', 'RWX_STORAGE_CLASS') }}"
+    prometheus_alertmgr_storage_class: "{{ lookup('env', 'RWX_STORAGE_CLASS') }}"
+    grafana_instance_storage_class: "{{ lookup('env', 'RWX_STORAGE_CLASS') }}"
+  roles:
+    - ibm.mas_devops.cluster_monitoring
+- hosts: localhost
+  roles:
+    - ibm.mas_devops.ibm_catalogs
+    - ibm.mas_devops.common_services
+- hosts: localhost
+  any_errors_fatal: true
+  vars:
+    mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
+    mas_config_dir: /mascli/masconfig
+    dro_storage_class: "{{ lookup('env', 'RWO_STORAGE_CLASS') }}"
+    dro_contact:
+      email: "{{ lookup('env', 'UDS_EMAIL_ID') }}"
+      first_name: "{{ lookup('env', 'UDS_FIRSTNAME') }}"
+      last_name: "{{ lookup('env', 'UDS_LASTNAME') }}"
+  roles:
+  - ibm.mas_devops.dro
+- hosts: localhost
+  any_errors_fatal: true
+  vars:
+    mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
+    sls_mongodb_cfg_file: "~/masconfig/mongodb.yml"
+    entitlement_file: "~/masconfig/license.dat"
+
+  roles:
+    - ibm.mas_devops.sls
+- hosts: localhost
+  any_errors_fatal: true
+  vars:
+    # Choose which catalog source to use for the MAS install, default to the IBM operator catalog
+    mas_app_catalog_source: "{{ lookup('env', 'MAS_APP_CATALOG_SOURCE') | default('ibm-operator-catalog', true) }}"
+
+    # Which MAS channel to subscribe to
+    mas_app_channel: "{{ lookup('env', 'MAS_APP_CHANNEL') | default('8.x', true) }}"
+
+    # MAS configuration
+    mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
+
+    # MAS configuration - Entitlement
+    mas_entitlement_username: "{{ lookup('env', 'MAS_ENTITLEMENT_USERNAME') | default('cp', true) }}"
+    mas_entitlement_key: "{{ lookup('env', 'MAS_ENTITLEMENT_KEY') }}"
+
+    # MAS application configuration
+    mas_app_id: "{{ lookup('env', 'MAS_APP_ID') }}"
+
+    # Determine MAS Operator Upgrade Strategy Manual | Automatic
+    mas_app_upgrade_strategy: "{{ lookup('env', 'MAS_APP_UPGRADE_STRATEGY') | default('Manual', true) }}"
+
+    # Application Configuration - Spec
+    mas_app_spec:
+      bindings:
+        jdbc: system
+        mongo: system
+        kafka: system
+
+    # Application Configuration - Install Plan
+    mas_app_plan: "{{ lookup('env', 'MAS_APP_PLAN') | default('full', true) }}"
+
+  roles:
+    - ibm.mas_devops.suite_app_install
+- hosts: localhost
+  any_errors_fatal: true
+  vars:
+    # MAS configuration
+    mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
+
+    # MAS workspace configuration
+    mas_workspace_id: "{{ lookup('env', 'MAS_WORKSPACE_ID') }}"
+
+    # MAS application configuration
+    mas_app_id: "{{ lookup('env', 'MAS_APP_ID') }}"
+
+    mas_appws_spec:
+      bindings:
+        jdbc: "{{ mas_appws_jdbc_binding | default( 'system' , true) }}"
+
+  roles:
+    - ibm.mas_devops.suite_app_config
