@@ -1,25 +1,30 @@
 - hosts: localhost
-  vars:
-    ocp_server: xxxxx
-    ocp_token: xxxxx
-  roles:
-    - ibm.mas_devops.ocp_login
-- hosts: localhost
   roles:
     - ibm.mas_devops.ibm_catalogs
 - hosts: localhost
   any_errors_fatal: true 
   vars:
-    mongodb_namespace: mongoazure
+    mongodb_namespace: "{{ lookup('env', 'MONGODB_NAMESPACE') }}"
     mongodb_admin_username: "{{ lookup('env', 'MONGO_AZURE_USERNAME') }}"
     mongodb_admin_password: "{{ lookup('env', 'MONGO_AZURE_PASSWORD') }}"
     mongodb_hosts: "{{ lookup('env', 'MONGO_AZURE_HOSTS') }}"
     mongodb_retry_writes: true
     mongodb_ca_pem_local_file: /mascli/mongo-ca.pem
     mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
-    mas_config_dir: /mascli/masconfig  
+    mas_config_dir: "/mascli/masconfig"
   roles:
     - ibm.mas_devops.gencfg_mongo
+
+- hosts: localhost
+  any_errors_fatal: true
+  vars:
+    mas_instance_id:  "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
+    mas_workspace_id: "{{ lookup('env', 'MAS_WORKSPACE_ID') }}"
+    mas_workspace_name: "{{ lookup('env', 'MAS_WORKSPACE_DESCRIPTION') }}" 
+    mas_config_dir: "/mascli/masconfig"
+  roles:
+    - ibm.mas_devops.gencfg_workspace
+
 - hosts: localhost
   vars:
     prometheus_storage_class: "{{ lookup('env', 'RWX_STORAGE_CLASS') }}"
@@ -27,15 +32,17 @@
     grafana_instance_storage_class: "{{ lookup('env', 'RWX_STORAGE_CLASS') }}"
   roles:
     - ibm.mas_devops.cluster_monitoring
+
 - hosts: localhost
   roles:
     - ibm.mas_devops.ibm_catalogs
     - ibm.mas_devops.common_services
+
 - hosts: localhost
   any_errors_fatal: true
   vars:
     mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
-    mas_config_dir: /mascli/masconfig
+    mas_config_dir: "/mascli/masconfig"
     dro_storage_class: "{{ lookup('env', 'RWO_STORAGE_CLASS') }}"
     dro_contact:
       email: "{{ lookup('env', 'UDS_EMAIL_ID') }}"
@@ -43,15 +50,16 @@
       last_name: "{{ lookup('env', 'UDS_LASTNAME') }}"
   roles:
   - ibm.mas_devops.dro
+
 - hosts: localhost
   any_errors_fatal: true
   vars:
     mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
-    sls_mongodb_cfg_file: "~/masconfig/mongodb.yml"
-    entitlement_file: "~/masconfig/license.dat"
-
+    sls_mongodb_cfg_file: "/mascli/masconfig/mongodb.yml"
+    entitlement_file: "/mascli/masconfig/license.dat"
   roles:
     - ibm.mas_devops.sls
+
 - hosts: localhost
   any_errors_fatal: true
   vars:
@@ -80,10 +88,8 @@
         jdbc: system
         mongo: system
         kafka: system
-
     # Application Configuration - Install Plan
     mas_app_plan: "{{ lookup('env', 'MAS_APP_PLAN') | default('full', true) }}"
-
   roles:
     - ibm.mas_devops.suite_app_install
 - hosts: localhost
@@ -91,16 +97,42 @@
   vars:
     # MAS configuration
     mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
-
     # MAS workspace configuration
     mas_workspace_id: "{{ lookup('env', 'MAS_WORKSPACE_ID') }}"
-
     # MAS application configuration
     mas_app_id: "{{ lookup('env', 'MAS_APP_ID') }}"
-
     mas_appws_spec:
       bindings:
         jdbc: "{{ mas_appws_jdbc_binding | default( 'system' , true) }}"
-
   roles:
     - ibm.mas_devops.suite_app_config
+
+- hosts: localhost
+  any_errors_fatal: true
+  vars:
+    mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
+    mas_workspace_id: "{{ lookup('env', 'MAS_WORKSPACE_ID') }}"
+    mas_config_dir: "/mascli/masconfig"
+    ibm_entitlement_key: "{{ lookup('env', 'MAS_ENTITLEMENT_KEY') }}"
+    db_instance_id : "{{ lookup('env', 'MANAGE_DB_INSTANCE') }}"
+    mas_jdbc_user : "{{ lookup('env', 'MANAGE_DB_USER') }}"
+    mas_jdbc_password : "{{ lookup('env', 'MANAGE_DB_PASSWORD') }}"
+    mas_jdbc_url : "{{ lookup('env', 'MANAGE_JDBC_URL') }}"
+    mas_app_settings_db2_schema: "{{ lookup('env', 'MANAGE_SCHEMA') }}"
+    mas_app_settings_tablespace: "{{ lookup('env', 'MANAGE_MAXDATA_TABLESPACE') }}"
+    mas_app_settings_indexspace: "{{ lookup('env', 'MANAGE_MAXINDEX_TABLESPACE') }}"
+  roles:
+    - ibm.mas_devops.oneclick_add_manage
+
+- hosts: localhost
+  any_errors_fatal: true
+  vars:
+    mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
+    mas_workspace_id: "{{ lookup('env', 'MAS_WORKSPACE_ID') }}"
+    mas_app_settings_custom_persistent_volume_sc_name: "{{ lookup('env', 'GRS_STORAGE_CLASS') }}"
+    mas_app_settings_custom_persistent_volume_pvc_name: "doclinks-pvc"
+    mas_app_settings_custom_persistent_volume_pvc_size: "100Gi"
+    mas_app_settings_custom_persistent_volume_mount_path: "/opt/ibm/wlp/output/doclinks"
+    mas_app_settings_custom_pv_name: "{{ lookup('env', 'MANAGE_DOCLINKS_PV_NAME') }}" 
+  roles:
+    - ibm.mas_devops.suite_manage_pvc_config
