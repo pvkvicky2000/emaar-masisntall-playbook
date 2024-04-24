@@ -1,0 +1,16 @@
+- hosts: localhost
+  roles:
+    - ibm.mas_devops.ibm_catalogs
+- hosts: localhost
+  any_errors_fatal: true 
+  vars:
+    mongodb_namespace: "{{ lookup('env', 'MONGODB_NAMESPACE') }}"
+    mongodb_admin_username: "{{ lookup('env', 'MONGO_AZURE_USERNAME') }}"
+    mongodb_admin_password: "{{ lookup('env', 'MONGO_AZURE_PASSWORD') }}"
+    mongodb_hosts: "{{ lookup('env', 'MONGO_AZURE_HOSTS') }}"
+    mongodb_retry_writes: true
+    mongodb_ca_pem_local_file: /mascli/mongo-ca.pem
+    mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
+    mas_config_dir: "/mascli/masconfig"
+  roles:
+    - ibm.mas_devops.gencfg_mongo
