@@ -24,7 +24,8 @@ ansible-playbook mongocfggen.yaml -f 10 --verbose
 
 * Optional: Create Azure files standard for ARO should be run inside CLI
 ```bash
-oc apply -f ./emaar/azurefiles-standard.yaml
+oc apply -f ./azurefiles-standard.yaml
+oc apply -f ./azurefiles-grs.yaml
 ```
 
 👉 Run the Below command to Run the Maximo install command
