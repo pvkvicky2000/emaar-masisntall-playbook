@@ -1,7 +1,4 @@
 - hosts: localhost
-  roles:
-    - ibm.mas_devops.ibm_catalogs
-- hosts: localhost
   any_errors_fatal: true 
   vars:
     mongodb_namespace: "{{ lookup('env', 'MONGODB_NAMESPACE') }}"
