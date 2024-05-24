@@ -1,0 +1,29 @@
+- hosts: localhost
+  any_errors_fatal: true
+  vars:
+    mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
+    mas_workspace_id: "{{ lookup('env', 'MAS_WORKSPACE_ID') }}"
+    mas_config_dir: "/mascli/masconfig"
+    ibm_entitlement_key: "{{ lookup('env', 'MAS_ENTITLEMENT_KEY') }}"
+    db_instance_id : "{{ lookup('env', 'MANAGE_DB_INSTANCE') }}"
+    mas_jdbc_user : "{{ lookup('env', 'MANAGE_DB_USER') }}"
+    mas_jdbc_password : "{{ lookup('env', 'MANAGE_DB_PASSWORD') }}"
+    mas_jdbc_url : "{{ lookup('env', 'MANAGE_JDBC_URL') }}"
+    mas_app_settings_db2_schema: "{{ lookup('env', 'MANAGE_SCHEMA') }}"
+    mas_app_settings_tablespace: "{{ lookup('env', 'MANAGE_MAXDATA_TABLESPACE') }}"
+    mas_app_settings_indexspace: "{{ lookup('env', 'MANAGE_MAXINDEX_TABLESPACE') }}"
+  roles:
+    - ibm.mas_devops.oneclick_add_manage
+
+- hosts: localhost
+  any_errors_fatal: true
+  vars:
+    mas_instance_id: "{{ lookup('env', 'MAS_INSTANCE_ID') }}"
+    mas_workspace_id: "{{ lookup('env', 'MAS_WORKSPACE_ID') }}"
+    mas_app_settings_custom_persistent_volume_sc_name: "{{ lookup('env', 'GRS_STORAGE_CLASS') }}"
+    mas_app_settings_custom_persistent_volume_pvc_name: "doclinks-pvc"
+    mas_app_settings_custom_persistent_volume_pvc_size: "100Gi"
+    mas_app_settings_custom_persistent_volume_mount_path: "/opt/ibm/wlp/output/doclinks"
+    mas_app_settings_custom_pv_name: "{{ lookup('env', 'MANAGE_DOCLINKS_PV_NAME') }}" 
+  roles:
+    - ibm.mas_devops.suite_manage_pvc_config
